@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CheerMeApp.Installers;
 using CheerMeApp.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace CheerMeApp.Installers
 {

@@ -21,8 +21,9 @@ using Tweetbook.Contracts.V1.Responses;
 
 namespace CheerMeApp.Controllers.V1
 {
-    [EnableCors("MyPolicy")]
-    public class IdentityController : Controller
+    [EnableCors("CorsPolicy")]
+    [ApiController]
+    public class IdentityController : ControllerBase
     {
         private readonly IIdentityService _identityService;
         private readonly UserManager<User> _userManager;
@@ -93,13 +94,12 @@ namespace CheerMeApp.Controllers.V1
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpGet("api/v1/user")]
+        [HttpGet(ApiRoutes.Identity.AuthenticatedUser)]
         public async Task<IActionResult> AuthenticatedUser()
         {
-            var userId = HttpContext.GetUserId();
-            var authUser = await _userManager.FindByIdAsync(userId);
-            var user = _mapper.Map<User, UserResponse>(authUser);
-            return Ok(user);
+            var user = await _identityService.GetAuthenticatedUser();
+            var userResponse = _mapper.Map<User, UserResponse>(user);
+            return Ok(userResponse);
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]

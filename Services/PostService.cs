@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using CheerMeApp.Data;
+using CheerMeApp.Extensions;
 using CheerMeApp.Models;
 using CheerMeApp.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -14,28 +16,43 @@ namespace CheerMeApp.Services
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly ILikeService _likeService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PostService(ApplicationDbContext dbContext, ILikeService likeService)
+        public PostService(ApplicationDbContext dbContext, ILikeService likeService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _dbContext = dbContext;
             _likeService = likeService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<Post>> GetPostsAsync(PaginationFilter paginationFilter = null)
         {
             if (paginationFilter == null)
             {
-                return await _dbContext.Posts.Include(post => post.User).ToListAsync();
+                return await _dbContext.Posts.Include(post => post.User)
+                    .Include(post => post.Likes)
+                    .Include(post => post.Comments)
+                    .ToListAsync();
             }
 
             var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
-            return await _dbContext.Posts.Include(post => post.User).Skip(skip).Take(paginationFilter.PageSize)
+            return await _dbContext.Posts.Include(post => post.User)
+                .Include(post => post.User)
+                .Include(post => post.Comments)
+                .Include(post => post.Likes)
+                .OrderByDescending(post => post.CreatedAt)
+                .Skip(skip)
+                .Take(paginationFilter.PageSize)
                 .ToListAsync();
         }
 
         public async Task<Post> GetPostByIdAsync(Guid postId)
         {
-            return await _dbContext.Posts.Include(post => post.User).SingleOrDefaultAsync(post => post.Id == postId);
+            return await _dbContext.Posts.Include(post => post.User)
+                .Include(post => post.Likes)
+                .Include(post => post.Comments)
+                .SingleOrDefaultAsync(post => post.Id == postId);
         }
 
         public async Task<bool> UpdatePostAsync(Post postToUpdate)
@@ -60,62 +77,65 @@ namespace CheerMeApp.Services
         {
             post.CreatedAt = DateTime.UtcNow;
             post.UpdatedAt = post.CreatedAt;
-            await _dbContext.AddAsync(post);
+            await _dbContext.Posts.AddAsync(post);
             var created = await _dbContext.SaveChangesAsync();
             return created > 0;
         }
 
-        public async Task<bool> UserOwnsPostAsync(Guid postId, string userId)
+        public async Task<bool> UserOwnsPostAsync(string postId, string userId)
         {
-            var post = await _dbContext.Posts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == postId);
+            var post = await _dbContext.Posts.AsNoTracking().SingleOrDefaultAsync(x => x.Id.ToString() == postId);
             return post != null && post.UserId == userId;
         }
 
-        public async Task<bool> LikePost(Like like)
+        public async Task<bool> LikePostAsync(Guid postId)
         {
-            var post = await GetPostByIdAsync(new Guid(like.LikableId));
+            var post = await GetPostByIdAsync(postId);
             if (post == null)
             {
                 return false;
             }
 
-            await _dbContext.Likers.AddAsync(like);
+            var like = new Like
+            {
+                UserId = _httpContextAccessor.HttpContext.GetUserId(),
+                PostId = postId,
+                CommentId = null,
+                CreatedAt = DateTime.UtcNow,
+            };
+            like.UpdatedAt = like.CreatedAt;
+            await _dbContext.Likes.AddAsync(like);
             var liked = await _dbContext.SaveChangesAsync();
             return liked > 0;
         }
 
-        public async Task<bool> UnLikePost(Like likeToDelete)
+        public async Task<bool> UnLikePostAsync(Guid postId)
         {
-            var post = await GetPostByIdAsync(new Guid(likeToDelete.LikableId));
+            var post = await GetPostByIdAsync(postId);
             if (post == null)
             {
                 return false;
             }
 
-            var like = await _likeService.GetLike(likeToDelete.LikerId, likeToDelete.LikableId,
-                likeToDelete.LikableType);
+            var like = await _likeService.GetLike(_httpContextAccessor.HttpContext.GetUserId(), postId.ToString(),
+                nameof(Post));
             if (like == null)
                 return false;
-            _dbContext.Likers.Remove(like);
+            _dbContext.Likes.Remove(like);
             var deleted = await _dbContext.SaveChangesAsync();
             return deleted > 0;
         }
 
-        public async Task<List<Like>> GetLikes(Guid postId)
+        public async Task<List<Like>> GetLikesAsync(Guid postId)
         {
-            var likes = await _likeService.GetLikesAsync(postId, nameof(Post));
+            var likes = await _likeService.GetLikesAsync(postId.ToString(), nameof(Post));
             return likes;
         }
 
-        public int GetLikesCount(Guid postId)
+        public async Task<bool> IsLikedAsync(Guid postId)
         {
-            var likesCount = _likeService.GetLikeCount(postId, nameof(Post));
-            return likesCount;
-        }
-
-        public async Task<bool> IsLiked(string userId, Guid postId)
-        {
-            var isLiked = await _likeService.LikedByUserAsync(userId, postId, nameof(Post));
+            var userId = _httpContextAccessor.HttpContext.GetUserId();
+            var isLiked = await _likeService.LikedByUserAsync(userId, postId.ToString(), nameof(Post));
             return isLiked;
         }
     }

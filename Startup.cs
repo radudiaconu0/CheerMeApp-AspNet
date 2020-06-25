@@ -28,7 +28,7 @@ namespace CheerMeApp
         }
 
         public IConfiguration Configuration { get; }
-        readonly string MyPolicy = "MyPolicy";
+        private const string CorsPolicy = "CorsPolicy";
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -43,7 +43,7 @@ namespace CheerMeApp
             {
                 app.UseDeveloperExceptionPage();
             }
-           
+
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
 
@@ -58,8 +58,8 @@ namespace CheerMeApp
             app.UseHttpsRedirection();
 
             app.UseRouting();
-            
-            app.UseCors(MyPolicy);
+
+            app.UseCors(CorsPolicy);
 
             app.UseAuthorization();
 

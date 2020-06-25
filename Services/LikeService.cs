@@ -22,33 +22,50 @@ namespace CheerMeApp.Services
             _mapper = mapper;
         }
 
-        public async Task<bool> LikedByUserAsync(string userId, Guid likableId, string likableType)
+        public async Task<bool> LikedByUserAsync(string userId, string entityId, string entityType)
         {
-            var like = await _dbContext.Likers.AsNoTracking().SingleOrDefaultAsync(x =>
-                x.LikerId == userId && x.LikableId == likableId.ToString() && x.LikableType == likableType);
+            Like like = null;
+            if (entityType == nameof(Post))
+            {
+                like = await _dbContext.Likes.AsNoTracking().SingleOrDefaultAsync(x =>
+                    x.UserId == userId && x.PostId == new Guid(entityId));
+            }
+            else
+            {
+                like = await _dbContext.Likes.AsNoTracking().SingleOrDefaultAsync(x =>
+                    x.UserId == userId && x.CommentId == new Guid(entityId));
+            }
+
             return like != null;
         }
 
-        public int GetLikeCount(Guid likableId, string likableType)
-        {
-            return _dbContext.Likers.Count(like =>
-                like.LikableId == likableId.ToString() && like.LikableType == likableType);
-        }
 
-        public async Task<List<Like>> GetLikesAsync(Guid likableId, string likableType)
+        public async Task<List<Like>> GetLikesAsync(string entityId, string entityType)
         {
-            var likes = await _dbContext.Likers.Include(like => like.Liker).Where(like =>
-                like.LikableId == likableId.ToString() && like.LikableType == likableType).ToListAsync();
+            List<Like> likes = null;
+            if (entityType == nameof(Post))
+            {
+                likes = await _dbContext.Likes.Include(like => like.Liker).Where(like =>
+                    like.PostId == new Guid(entityId)).ToListAsync();
+            }
+            else
+            {
+                likes = await _dbContext.Likes.Include(like => like.Liker).Where(like =>
+                    like.CommentId == new Guid(entityId)).ToListAsync();
+            }
 
             return likes;
         }
-        
-        public async Task<Like> GetLike(string userId, string likableId, string likableType)
+
+        public async Task<Like> GetLike(string userId, string entityId, string entityType)
         {
-            var like = await _dbContext.Likers.SingleOrDefaultAsync(x =>
-                x.LikerId == userId && x.LikableId == likableId && x.LikableType == likableType);
+            Like like = null;
+            if (entityType == nameof(Post))
+            {
+                like = await _dbContext.Likes.SingleOrDefaultAsync(x =>
+                    x.UserId == userId && x.PostId == new Guid(entityId));
+            }
             return like;
         }
-        
     }
 }

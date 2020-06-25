@@ -8,9 +8,8 @@ namespace CheerMeApp.Services.Interfaces
 {
     public interface ILikeService
     {
-        Task<bool> LikedByUserAsync(string userId, Guid likableId, string likableType);
-        int GetLikeCount(Guid likableId, string likableType);
-        Task<List<Like>> GetLikesAsync(Guid likableId, string likableType);
-        Task<Like> GetLike(string userId, string likableId, string likableType);
+        Task<bool> LikedByUserAsync(string userId, string entityId, string entityType);
+        Task<List<Like>> GetLikesAsync(string entityId, string entityType);
+        Task<Like> GetLike(string userId, string entityId, string entityType);
     }
 }

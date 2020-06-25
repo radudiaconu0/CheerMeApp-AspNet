@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
-using CheerMeApp.Models;
+
 
 namespace CheerMeApp.Contracts.V1.Responses
 {
@@ -14,5 +15,6 @@ namespace CheerMeApp.Contracts.V1.Responses
         public UserResponse User { get; set; }
         public int LikesCount { get; set; }
         public bool Liked { get; set; }
+        public int CommentsCount { get; set; }
     }
 }

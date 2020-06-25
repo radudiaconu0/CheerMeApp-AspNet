@@ -25,16 +25,17 @@ namespace CheerMeApp.Services
         private readonly JwtSettings _jwtSettings;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly ApplicationDbContext _dbContext;
-        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public IdentityService(UserManager<User> userManager, JwtSettings jwtSettings,
-            TokenValidationParameters tokenValidationParameters, ApplicationDbContext dbContext, IMapper mapper)
+            TokenValidationParameters tokenValidationParameters, ApplicationDbContext dbContext,
+            IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings;
             _tokenValidationParameters = tokenValidationParameters;
             _dbContext = dbContext;
-            _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<AuthenticationResult> RegisterAsync(string email, string password, string firstname,
@@ -166,6 +167,12 @@ namespace CheerMeApp.Services
             var user = await _userManager.FindByIdAsync(validatedToken.Claims.Single(claim => claim.Type == "id")
                 .Value);
             return await GenerateAuthenticationResultForUserAsync(user);
+        }
+
+        public async Task<User> GetAuthenticatedUser()
+        {
+            return await _dbContext.Users.SingleOrDefaultAsync(user =>
+                user.Id == _httpContextAccessor.HttpContext.GetUserId().ToString());
         }
 
         private ClaimsPrincipal GetPrincipalFromToken(string token)

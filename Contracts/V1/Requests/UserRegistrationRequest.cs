@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using CheerMeApp.Models;
 
 namespace CheerMeApp.Contracts.V1.Requests
 {

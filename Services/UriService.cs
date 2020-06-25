@@ -34,5 +34,16 @@ namespace CheerMeApp.Services
             modifiedUri = QueryHelpers.AddQueryString(modifiedUri, "pageSize", paginationQuery.PageSize.ToString());
             return new Uri(modifiedUri);
         }
+
+        public Uri GetCommentById(string commentId)
+        {
+            return new Uri(_baseUri + ApiRoutes.Comments.GetComment
+                .Replace("{commentId}", commentId));
+        }
+
+        public Uri GetAllCommentsUri(PaginationQuery paginationQuery = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

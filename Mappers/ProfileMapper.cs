@@ -1,6 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Linq;
+using AutoMapper;
 using CheerMeApp.Contracts.V1.Responses;
+using CheerMeApp.Extensions;
 using CheerMeApp.Models;
+using CheerMeApp.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace CheerMeApp.Mappers
 {
@@ -8,9 +12,13 @@ namespace CheerMeApp.Mappers
     {
         public ProfileMapper()
         {
-            CreateMap<Post, PostResponse>().ReverseMap();
+            CreateMap<Post, PostResponse>()
+                .ForMember(response => response.LikesCount, opt => opt.MapFrom(post => post.Likes.Count))
+                .ForMember(response => response.CommentsCount, opt => opt.MapFrom(post => post.Comments.Count))
+                .ReverseMap();
             CreateMap<User, UserResponse>().ReverseMap();
             CreateMap<Like, LikeResponse>().ReverseMap();
+            CreateMap<Comment, CommentResponse>().ReverseMap();
         }
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using CheerMeApp.Installers;
+using CheerMeApp.Mappers;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Http;
 
@@ -25,16 +26,20 @@ namespace CheerMeApp.Installers
             configuration.Bind(nameof(jwtSettings), jwtSettings);
             services.AddCors(options =>
             {
-                options.AddPolicy(name: "MyPolicy",
+                options.AddPolicy(name: "CorsPolicy",
                     builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
             });
             services.AddSingleton(jwtSettings);
 
+            services.AddHttpContextAccessor();
+
             services.AddScoped<IIdentityService, IdentityService>();
 
             services.AddScoped<IPostService, PostService>();
-            
+
             services.AddScoped<ILikeService, LikeService>();
+
+            services.AddScoped<ICommentService, CommentService>();
 
             services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); }).AddFluentValidation(
                 mvcConfiguration => { mvcConfiguration.RegisterValidatorsFromAssemblyContaining<Startup>(); }
@@ -100,6 +105,7 @@ namespace CheerMeApp.Installers
                     }
                 });
             });
+
             services.AddAutoMapper(typeof(Startup));
         }
     }

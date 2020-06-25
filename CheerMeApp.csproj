@@ -21,5 +21,18 @@
       <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUi" Version="5.4.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Contracts" />
+      <Folder Include="Data\Migrations" />
+      <Folder Include="Migrations" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="CheerMeApp.Contracts\bin\Debug\netcoreapp3.1\CheerMeApp.Contracts.deps.json" />
+      <_ContentIncludedByDefault Remove="CheerMeApp.Contracts\obj\CheerMeApp.Contracts.csproj.nuget.dgspec.json" />
+      <_ContentIncludedByDefault Remove="CheerMeApp.Contracts\obj\project.assets.json" />
+      <_ContentIncludedByDefault Remove="CheerMeApp.Contracts\obj\project.packagespec.json" />
+    </ItemGroup>
+
 
 </Project>

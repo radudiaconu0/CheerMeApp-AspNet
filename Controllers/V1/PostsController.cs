@@ -14,17 +14,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CheerMeApp.Contracts.V1;
 using CheerMeApp.Contracts.V1.Requests.Queries;
-using CheerMeApp.Data;
 using CheerMeApp.Helpers;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 
 namespace CheerMeApp.Controllers.V1
 {
-    [EnableCors("MyPolicy")]
+    [ApiController]
+    [EnableCors("CorsPolicy")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class PostsController : Controller
+    public class PostsController : ControllerBase
     {
         private readonly IPostService _postService;
         private readonly ILikeService _likeService;
@@ -50,11 +50,7 @@ namespace CheerMeApp.Controllers.V1
             var posts = await _postService.GetPostsAsync(paginationFilter);
             var postResponse = _mapper.Map<List<PostResponse>>(posts);
             foreach (var post in postResponse)
-            {
-                post.LikesCount = _postService.GetLikesCount(post.Id);
-                post.Liked = await _postService.IsLiked(HttpContext.GetUserId(), post.Id);
-            }
-
+                post.Liked = await _postService.IsLikedAsync(post.Id);
             if (paginationQuery == null || paginationQuery.PageNumber < 1 || paginationQuery.PageSize < 1)
             {
                 return Ok(new PagedResponse<PostResponse>(postResponse));
@@ -77,8 +73,7 @@ namespace CheerMeApp.Controllers.V1
             }
 
             var postResponse = _mapper.Map<PostResponse>(post);
-            postResponse.LikesCount = _postService.GetLikesCount(post.Id);
-            postResponse.Liked = await _postService.IsLiked(HttpContext.GetUserId(), postId);
+            postResponse.Liked = await _postService.IsLikedAsync(postId);
             return Ok(new Response<PostResponse>(postResponse));
         }
 
@@ -87,7 +82,7 @@ namespace CheerMeApp.Controllers.V1
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update([FromRoute] Guid postId, [FromBody] UpdatePostRequest request)
         {
-            var userOwnsPost = await _postService.UserOwnsPostAsync(postId, HttpContext.GetUserId());
+            var userOwnsPost = await _postService.UserOwnsPostAsync(postId.ToString(), HttpContext.GetUserId());
             if (!userOwnsPost)
             {
                 return BadRequest(new {error = "You do not own this post"});
@@ -108,7 +103,7 @@ namespace CheerMeApp.Controllers.V1
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete([FromRoute] Guid postId)
         {
-            var userOwnsPost = await _postService.UserOwnsPostAsync(postId, HttpContext.GetUserId());
+            var userOwnsPost = await _postService.UserOwnsPostAsync(postId.ToString(), HttpContext.GetUserId());
             if (!userOwnsPost)
             {
                 return BadRequest(new {error = "You do not own this post"});
@@ -125,57 +120,11 @@ namespace CheerMeApp.Controllers.V1
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] CreatePostRequest postRequest)
         {
-            var newPostId = Guid.NewGuid();
-            var post = new Post {Id = newPostId, PostText = postRequest.PostText, UserId = HttpContext.GetUserId()};
+            var post = new Post {PostText = postRequest.PostText, UserId = HttpContext.GetUserId()};
             await _postService.CreatePostAsync(post);
             var locationUrl = _uriService.GetPostById(post.Id.ToString());
             post.User = await _userManager.FindByIdAsync(post.UserId);
             return Created(locationUrl, new Response<PostResponse>(_mapper.Map<PostResponse>(post)));
-        }
-
-        [HttpPost(ApiRoutes.Posts.LikePost)]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> LikePost([FromRoute] Guid postId)
-        {
-            if (await _likeService.LikedByUserAsync(HttpContext.GetUserId(), postId, nameof(Post)))
-            {
-                return BadRequest();
-            }
-
-            var like = new Like
-                {LikerId = HttpContext.GetUserId(), LikableId = postId.ToString(), LikableType = nameof(Post)};
-            var liked = await _postService.LikePost(like);
-            if (liked)
-            {
-                return Ok();
-            }
-
-            return BadRequest();
-        }
-
-        [HttpPost(ApiRoutes.Posts.UnLikePost)]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> UnLikePost([FromRoute] Guid postId)
-        {
-            var liked = await _likeService.LikedByUserAsync(HttpContext.GetUserId(), postId, nameof(Post));
-            if (!liked) return BadRequest();
-            var like = new Like
-                {LikerId = HttpContext.GetUserId(), LikableId = postId.ToString(), LikableType = nameof(Post)};
-            var unLiked = await _postService.UnLikePost(like);
-            if (unLiked)
-            {
-                return Ok();
-            }
-
-            return BadRequest();
-        }
-
-        [HttpGet(ApiRoutes.Posts.GetLikes)]
-        public async Task<IActionResult> GetLikes([FromRoute] Guid postId)
-        {
-            var likes = await _postService.GetLikes(postId);
-            var likesResponse = _mapper.Map<List<LikeResponse>>(likes);
-            return Ok(new Response<List<LikeResponse>>(likesResponse));
         }
     }
 }
