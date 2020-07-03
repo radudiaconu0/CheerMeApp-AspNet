@@ -50,7 +50,7 @@ namespace CheerMeApp.Controllers.V1
             var posts = await _postService.GetPostsAsync(paginationFilter);
             var postResponse = _mapper.Map<List<PostResponse>>(posts);
             foreach (var post in postResponse)
-                post.Liked = await _postService.IsLikedAsync(post.Id);
+                post.Liked = await _likeService.IsLikedAsync(post.Id, nameof(Post));
             if (paginationQuery == null || paginationQuery.PageNumber < 1 || paginationQuery.PageSize < 1)
             {
                 return Ok(new PagedResponse<PostResponse>(postResponse));
@@ -73,7 +73,7 @@ namespace CheerMeApp.Controllers.V1
             }
 
             var postResponse = _mapper.Map<PostResponse>(post);
-            postResponse.Liked = await _postService.IsLikedAsync(postId);
+            postResponse.Liked = await _likeService.IsLikedAsync(postId, nameof(Post));
             return Ok(new Response<PostResponse>(postResponse));
         }
 

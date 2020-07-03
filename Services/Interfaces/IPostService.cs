@@ -14,9 +14,7 @@ namespace CheerMeApp.Services.Interfaces
         Task<bool> DeletePostAsync(Guid postId);
         Task<bool> CreatePostAsync(Post post);
         Task<bool> UserOwnsPostAsync(string postId, string userId);
-        Task<bool> LikePostAsync(Guid postId);
-        Task<bool> UnLikePostAsync(Guid postId);
-        Task<List<Like>> GetLikesAsync(Guid postId);
-        Task<bool> IsLikedAsync(Guid postId);
+        // Task<List<Like>> GetLikesAsync(Guid postId);
+        // Task<bool> IsLikedAsync(Guid postId);
     }
 }

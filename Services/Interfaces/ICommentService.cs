@@ -14,5 +14,7 @@ namespace CheerMeApp.Services.Interfaces
         Task<bool> UpdateCommentAsync(Guid commentId);
         Task<List<Comment>> GetCommentsByPostAsync(Guid postId, PaginationFilter paginationFilter);
         Task<bool> CreateReply(Guid commentId, Comment comment, PaginationFilter paginationFilter);
+        Task<List<Comment>> GetRepliesByCommentAsync(Guid commentId, PaginationFilter paginationFilter);
+
     }
 }

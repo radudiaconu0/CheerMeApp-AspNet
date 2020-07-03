@@ -15,14 +15,13 @@ namespace CheerMeApp.Services
     public class PostService : IPostService
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly ILikeService _likeService;
+
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PostService(ApplicationDbContext dbContext, ILikeService likeService,
+        public PostService(ApplicationDbContext dbContext,
             IHttpContextAccessor httpContextAccessor)
         {
             _dbContext = dbContext;
-            _likeService = likeService;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -88,55 +87,5 @@ namespace CheerMeApp.Services
             return post != null && post.UserId == userId;
         }
 
-        public async Task<bool> LikePostAsync(Guid postId)
-        {
-            var post = await GetPostByIdAsync(postId);
-            if (post == null)
-            {
-                return false;
-            }
-
-            var like = new Like
-            {
-                UserId = _httpContextAccessor.HttpContext.GetUserId(),
-                PostId = postId,
-                CommentId = null,
-                CreatedAt = DateTime.UtcNow,
-            };
-            like.UpdatedAt = like.CreatedAt;
-            await _dbContext.Likes.AddAsync(like);
-            var liked = await _dbContext.SaveChangesAsync();
-            return liked > 0;
-        }
-
-        public async Task<bool> UnLikePostAsync(Guid postId)
-        {
-            var post = await GetPostByIdAsync(postId);
-            if (post == null)
-            {
-                return false;
-            }
-
-            var like = await _likeService.GetLike(_httpContextAccessor.HttpContext.GetUserId(), postId.ToString(),
-                nameof(Post));
-            if (like == null)
-                return false;
-            _dbContext.Likes.Remove(like);
-            var deleted = await _dbContext.SaveChangesAsync();
-            return deleted > 0;
-        }
-
-        public async Task<List<Like>> GetLikesAsync(Guid postId)
-        {
-            var likes = await _likeService.GetLikesAsync(postId.ToString(), nameof(Post));
-            return likes;
-        }
-
-        public async Task<bool> IsLikedAsync(Guid postId)
-        {
-            var userId = _httpContextAccessor.HttpContext.GetUserId();
-            var isLiked = await _likeService.LikedByUserAsync(userId, postId.ToString(), nameof(Post));
-            return isLiked;
-        }
     }
 }

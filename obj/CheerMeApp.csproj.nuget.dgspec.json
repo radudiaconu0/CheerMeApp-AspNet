@@ -14,7 +14,7 @@
         "outputPath": "C:\\Users\\radud\\RiderProjects\\CheerMeApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Microsoft\\Xamarin\\NuGet"
+          "C:\\Microsoft\\Xamarin\\NuGet\\"
         ],
         "configFilePaths": [
           "C:\\Users\\radud\\AppData\\Roaming\\NuGet\\NuGet.Config",

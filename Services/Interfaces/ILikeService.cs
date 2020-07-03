@@ -11,5 +11,9 @@ namespace CheerMeApp.Services.Interfaces
         Task<bool> LikedByUserAsync(string userId, string entityId, string entityType);
         Task<List<Like>> GetLikesAsync(string entityId, string entityType);
         Task<Like> GetLike(string userId, string entityId, string entityType);
+        Task<bool> LikeAsync(Guid entityId, string entityType);
+        Task<bool> UnLikeAsync(Guid entityId, string entityType);
+        Task<List<Like>> GetLikesAsync(Guid entityId, string entityType);
+        Task<bool> IsLikedAsync(Guid entityId, string entityType);
     }
 }

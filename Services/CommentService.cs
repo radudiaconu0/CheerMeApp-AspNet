@@ -61,12 +61,17 @@ namespace CheerMeApp.Services
             if (paginationFilter == null)
             {
                 return await _dbContext.Comments.Include(comment => comment.User)
-                    .Where(comment => comment.PostId == postId).ToListAsync();
+                    .Include(comment => comment.Likes)
+                    .Include(comment => comment.Replies)
+                    .Where(comment => comment.PostId == postId)
+                    .ToListAsync();
             }
 
             var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
             return await _dbContext.Comments
                 .Include(comment => comment.User)
+                .Include(comment => comment.Likes)
+                .Include(comment => comment.Replies)
                 .Where(comment => comment.PostId == postId)
                 .Skip(skip)
                 .Take(paginationFilter.PageSize)
@@ -81,6 +86,29 @@ namespace CheerMeApp.Services
             await _dbContext.Comments.AddAsync(comment);
             var created = await _dbContext.SaveChangesAsync();
             return created > 0;
+        }
+
+        public async Task<List<Comment>> GetRepliesByCommentAsync(Guid commentId, PaginationFilter paginationFilter)
+        {
+           // var replies = await _dbContext.Comments.Where(comment => comment.ParentId == commentId).ToListAsync();
+            if (paginationFilter == null)
+            {
+                return await _dbContext.Comments
+                    .Include(comment => comment.User)
+                    .Include(comment => comment.Likes)
+                    .Include(comment => comment.Replies)
+                    .Where(comment => comment.ParentId == commentId)
+                    .ToListAsync();
+            }
+
+            var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
+            return await _dbContext.Comments
+                .Include(comment => comment.User)
+                .Include(comment => comment.Likes)
+                .Where(comment => comment.ParentId == commentId)
+                .Skip(skip)
+                .Take(paginationFilter.PageSize)
+                .ToListAsync();
         }
 
         public async Task<Comment> GetCommentByIdAsync(Guid commentId)

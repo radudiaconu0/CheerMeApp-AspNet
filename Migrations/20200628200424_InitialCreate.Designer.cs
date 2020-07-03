@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheerMeApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200623182839_CommentsAdded")]
-    partial class CommentsAdded
+    [Migration("20200628200424_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

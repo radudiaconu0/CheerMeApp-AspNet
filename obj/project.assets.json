@@ -5922,7 +5922,7 @@
   },
   "packageFolders": {
     "C:\\Users\\radud\\.nuget\\packages\\": {},
-    "C:\\Microsoft\\Xamarin\\NuGet": {}
+    "C:\\Microsoft\\Xamarin\\NuGet\\": {}
   },
   "project": {
     "version": "1.0.0",
@@ -5934,7 +5934,7 @@
       "outputPath": "C:\\Users\\radud\\RiderProjects\\CheerMeApp\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Microsoft\\Xamarin\\NuGet"
+        "C:\\Microsoft\\Xamarin\\NuGet\\"
       ],
       "configFilePaths": [
         "C:\\Users\\radud\\AppData\\Roaming\\NuGet\\NuGet.Config",

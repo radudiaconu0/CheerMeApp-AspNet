@@ -15,6 +15,8 @@ namespace CheerMeApp.Data
         public DbSet<Like> Likes { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Follower> Followers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<Post>()
@@ -46,6 +48,21 @@ namespace CheerMeApp.Data
                 .HasOne(comment => comment.User)
                 .WithMany(user => user.Comments)
                 .HasForeignKey(comment => comment.UserId)
+                .HasPrincipalKey(user => user.Id);
+            builder.Entity<Comment>()
+                .HasMany(comment => comment.Likes)
+                .WithOne(like => like.Comment)
+                .HasForeignKey(like => like.CommentId)
+                .HasPrincipalKey(comment => comment.Id);
+            builder.Entity<User>()
+                .HasMany(user => user.Followers)
+                .WithOne(follower => follower.FollowerUser)
+                .HasForeignKey(follower => follower.FollowableId)
+                .HasPrincipalKey(user => user.Id);
+            builder.Entity<User>()
+                .HasMany(user => user.Followings)
+                .WithOne(follower => follower.FollowingUser)
+                .HasForeignKey(follower => follower.FollowableId)
                 .HasPrincipalKey(user => user.Id);
             base.OnModelCreating(builder);
         }

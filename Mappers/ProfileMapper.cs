@@ -18,7 +18,10 @@ namespace CheerMeApp.Mappers
                 .ReverseMap();
             CreateMap<User, UserResponse>().ReverseMap();
             CreateMap<Like, LikeResponse>().ReverseMap();
-            CreateMap<Comment, CommentResponse>().ReverseMap();
+            CreateMap<Comment, CommentResponse>()
+                .ForMember(response => response.LikesCount, opt => opt.MapFrom(comment => comment.Likes.Count))
+                .ForMember(response => response.RepliesCount, opt => opt.MapFrom(comment => comment.Replies.Count))
+                .ReverseMap();
         }
     }
 }
